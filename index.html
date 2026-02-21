@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چت هوش مصنوعی جمنای (عکس و متن)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
+        * { box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; }
+        body { margin: 0; background-color: #121212; color: #fff; display: flex; flex-direction: column; height: 100vh; }
+        
+        .header { background: #1e1e1e; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #333; }
+        
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        
+        .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; word-wrap: break-word; }
+        .user-msg { background: #2b5278; align-self: flex-start; border-bottom-right-radius: 2px; }
+        .ai-msg { background: #1e1e1e; align-self: flex-end; border-bottom-left-radius: 2px; border: 1px solid #333; }
+        .message img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+        
+        .input-area { background: #1e1e1e; padding: 15px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #333; }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #2c2c2c; color: #fff; outline: none; }
+        button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; background: #4caf50; color: white; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #45a049; }
+        .btn-secondary { background: #555; }
+        .btn-secondary:hover { background: #666; }
+        
+        /* Camera Modal */
+        #camera-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        #video-preview { width: 90%; max-width: 500px; border-radius: 10px; margin-bottom: 20px; }
+        .camera-controls { display: flex; gap: 15px; }
 
+        /* Image Preview before send */
+        #selected-image-container { display: none; position: relative; width: 100px; height: 100px; }
+        #selected-image { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        #remove-image { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: bold; }
+        
+        .loading { text-align: right; color: #888; font-size: 0.9rem; font-style: italic; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">دستیار هوشمند Gemini 2.5 Flash</div>
+    
+    <div class="chat-container" id="chat-box">
+        <div class="message ai-msg">سلام! من آماده‌ام تا به سوالات شما پاسخ دهم یا عکس‌های شما را تحلیل کنم.</div>
+    </div>
+    
+    <div class="loading" id="loading">در حال پردازش...</div>
+
+    <div class="input-area">
+        <div id="selected-image-container">
+            <img id="selected-image" src="" alt="preview">
+            <div id="remove-image" onclick="clearImage()">X</div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            
+            <button class="btn-secondary" onclick="document.getElementById('file-input').click()">📁 گالری</button>
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+            
+            <button class="btn-secondary" onclick="openCamera()">📷 دوربین</button>
+            <button onclick="sendMessage()">ارسال 🚀</button>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal">
+        <video id="video-preview" autoplay playsinline></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+        <div class="camera-controls">
+            <button onclick="takePhoto()">📸 گرفتن عکس</button>
+            <button class="btn-secondary" style="background: #d32f2f;" onclick="closeCamera()">بستن</button>
+        </div>
+    </div>
+
+    <script>
+        let currentImageBase64 = null;
+        let currentMimeType = null;
+        let videoStream = null;
+
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const loading = document.getElementById('loading');
+        const imageContainer = document.getElementById('selected-image-container');
+        const selectedImage = document.getElementById('selected-image');
+        
+        const cameraModal = document.getElementById('camera-modal');
+        const videoElement = document.getElementById('video-preview');
+        const canvasElement = document.getElementById('canvas');
+
+        // Append message to UI
+        function appendMessage(sender, text, imgSrc = null) {
+            const div = document.createElement('div');
+            div.className = `message ${sender === 'user' ? 'user-msg' : 'ai-msg'}`;
+            
+            if (text) {
+                const textSpan = document.createElement('span');
+                // تبدیل خط جدید به <br>
+                textSpan.innerHTML = text.replace(/\n/g, '<br>'); 
+                div.appendChild(textSpan);
+            }
+            if (imgSrc) {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                div.appendChild(img);
+            }
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Handle File Upload from Gallery
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    setImageForSending(e.target.result, file.type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Camera Functions
+        async function openCamera() {
+            cameraModal.style.display = 'flex';
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                videoElement.srcObject = videoStream;
+            } catch (err) {
+                alert('خطا در دسترسی به دوربین: ' + err.message);
+                closeCamera();
+            }
+        }
+
+        function closeCamera() {
+            cameraModal.style.display = 'none';
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        function takePhoto() {
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            
+            const dataUrl = canvasElement.toDataURL('image/jpeg', 0.8);
+            setImageForSending(dataUrl, 'image/jpeg');
+            closeCamera();
+        }
+
+        // Set Image Preview
+        function setImageForSending(dataUrl, mimeType) {
+            selectedImage.src = dataUrl;
+            imageContainer.style.display = 'block';
+            
+            // جدا کردن بخش base64 از پیشوند data:image/...
+            const base64Data = dataUrl.split(',')[1];
+            currentImageBase64 = base64Data;
+            currentMimeType = mimeType;
+        }
+
+        function clearImage() {
+            currentImageBase64 = null;
+            currentMimeType = null;
+            imageContainer.style.display = 'none';
+            selectedImage.src = '';
+            document.getElementById('file-input').value = '';
+        }
+
+        // Send Message to Vercel API
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text && !currentImageBase64) return;
+
+            // نمایش در UI کاربر
+            appendMessage('user', text, selectedImage.src || null);
+            
+            const requestBody = {
+                text: text,
+                imageBase64: currentImageBase64,
+                mimeType: currentMimeType
+            };
+
+            // پاک کردن ورودی‌ها
+            userInput.value = '';
+            clearImage();
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    appendMessage('ai', data.reply);
+                } else {
+                    appendMessage('ai', 'خطا: ' + (data.error || 'ارتباط با سرور برقرار نشد.'));
+                }
+            } catch (error) {
+                appendMessage('ai', 'خطای شبکه: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
