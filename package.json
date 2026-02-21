@@ -1,1 +1,13 @@
-
+{
+  "name": "gemini-chat-app",
+  "version": "1.0.0",
+  "description": "AI Chat app with Gemini 2.5 Flash, Camera and Gallery support",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'Run on Vercel'"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {}
+}
