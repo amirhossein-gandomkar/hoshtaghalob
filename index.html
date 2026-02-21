@@ -2,11 +2,9 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <!-- متاتگ مهم برای موبایل: جلوگیری از زوم شدن و تنظیم درست صفحه هنگام باز شدن کیبورد -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>چت هوش مصنوعی جمنای</title>
     
-    <!-- کتابخانه برای رندر فرمول‌های ریاضی -->
     <script>
         MathJax = {
             tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
@@ -14,7 +12,6 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
-    <!-- کتابخانه برای رندر کدهای برنامه نویسی و متن‌های مارک‌داون -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
@@ -22,17 +19,9 @@
         
         * { box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; margin: 0; padding: 0; }
         
-        /* استفاده از 100dvh برای حل مشکل نوار آدرس موبایل */
-        body { 
-            background-color: #121212; 
-            color: #fff; 
-            display: flex; 
-            height: 100vh; /* فال‌بک برای مرورگرهای قدیمی */
-            height: 100dvh; /* ارتفاع داینامیک برای موبایل */
-            overflow: hidden; 
-        }
+        body { background-color: #121212; color: #e0e0e0; display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
         
-        /* Sidebar (History) */
+        /* Sidebar */
         .sidebar { width: 250px; background: #1a1a1a; display: flex; flex-direction: column; border-left: 1px solid #333; transition: transform 0.3s; z-index: 100; flex-shrink: 0; }
         .sidebar-header { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .new-chat-btn { width: 100%; padding: 10px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -42,47 +31,85 @@
         .chat-item.active { border: 1px solid #4caf50; }
 
         /* Main Chat Area */
-        .main-content { flex: 1; display: flex; flex-direction: column; width: calc(100% - 250px); height: 100%; position: relative; }
+        .main-content { flex: 1; display: flex; flex-direction: column; width: calc(100% - 250px); height: 100%; position: relative; background-color: #121212; }
         
         .header { background: #1e1e1e; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
         .menu-btn { position: absolute; right: 15px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; display: none; }
         
-        .chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+        /* کانتینر اصلی چت - رفع مشکل اسکرول */
+        .chat-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            overflow-x: hidden;
+            padding: 20px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            scroll-behavior: smooth;
+        }
         
-        .message { max-width: 90%; padding: 12px 16px; border-radius: 12px; line-height: 1.6; word-wrap: break-word; overflow-x: auto; }
-        .user-msg { background: #2b5278; align-self: flex-start; border-bottom-right-radius: 2px; }
-        .ai-msg { background: #1e1e1e; align-self: flex-end; border-bottom-left-radius: 2px; border: 1px solid #333; width: 100%; max-width: 100%; }
+        /* رفع مشکل روی هم افتادن پیام‌ها با flex-shrink: 0 */
+        .message { 
+            flex-shrink: 0; 
+            line-height: 1.8; 
+            word-wrap: break-word; 
+            overflow-wrap: break-word;
+            font-size: 16px;
+        }
+
+        /* پیام کاربر به صورت حباب */
+        .user-msg { 
+            background: #2b5278; 
+            align-self: flex-start; 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            border-bottom-right-radius: 2px;
+            max-width: 85%;
+        }
+
+        /* پیام هوش مصنوعی بدون کادر و آزاد در صفحه */
+        .ai-msg { 
+            align-self: flex-start; 
+            width: 100%; 
+            padding: 0 5px; /* حذف کادر و بک گراند برای خوانایی بهتر */
+            color: #ececec;
+        }
+
         .message img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
         
-        /* Formats */
-        pre { background: #000; padding: 10px; border-radius: 8px; overflow-x: auto; direction: ltr; margin: 10px 0; }
-        code { background: #000; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        /* فرمت‌های متن مارک‌داون */
+        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; direction: ltr; margin: 15px 0; border: 1px solid #333; }
+        code { background: #1e1e1e; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #f8c555; }
+        p { margin-bottom: 10px; }
+        ul, ol { margin-right: 20px; margin-bottom: 10px; }
         
-        /* Input Area - رفع مشکل مخفی شدن در موبایل */
+        /* Input Area */
         .input-area { 
             background: #1e1e1e; 
-            padding: 10px; 
+            padding: 10px 15px; 
             display: flex; 
             flex-direction: column; 
             gap: 10px; 
             border-top: 1px solid #333; 
-            flex-shrink: 0; /* این خط باعث می‌شود کادر پایین هرگز فشرده نشود */
-            padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* برای گوشی‌های آیفون */
+            flex-shrink: 0; 
+            padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
             width: 100%;
         }
         
-        .controls { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; width: 100%; }
+        .controls { display: flex; gap: 8px; align-items: center; width: 100%; }
         
-        input[type="text"] { flex: 1; width: 100%; padding: 12px; border-radius: 8px; border: none; background: #2c2c2c; color: #fff; outline: none; font-size: 16px; /* فونت 16 از زوم خودکار کیبورد آیفون جلوگیری می‌کند */ }
-        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .btn-send { background: #4caf50; flex-shrink: 0; min-width: 44px; }
-        .btn-action { background: #555; flex-shrink: 0; min-width: 44px; }
+        input[type="text"] { flex: 1; width: 100%; padding: 14px; border-radius: 12px; border: none; background: #2c2c2c; color: #fff; outline: none; font-size: 16px; transition: 0.2s; }
+        input[type="text"]:focus { background: #333; }
+        
+        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .btn-send { background: #4caf50; flex-shrink: 0; min-width: 48px; }
+        .btn-action { background: #444; flex-shrink: 0; min-width: 48px; }
         
         #selected-image-container { display: none; position: relative; width: 60px; height: 60px; }
-        #selected-image { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-        #remove-image { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+        #selected-image { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #555; }
+        #remove-image { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
         
-        .loading { text-align: right; color: #888; font-size: 0.9rem; padding: 5px 15px; display: none; flex-shrink: 0; }
+        .loading { text-align: right; color: #aaa; font-size: 0.9rem; padding: 5px 15px; display: none; flex-shrink: 0; }
 
         /* Camera Modal */
         #camera-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
@@ -93,17 +120,17 @@
         @media (max-width: 768px) {
             .sidebar { position: fixed; right: 0; top: 0; height: 100%; transform: translateX(100%); }
             .sidebar.open { transform: translateX(0); }
-            .main-content { width: 100%; }
             .menu-btn { display: block; }
-            .btn-action span, .btn-send span { display: none; } /* مخفی کردن متن دکمه‌ها در موبایل */
-            .controls { gap: 5px; }
-            input[type="text"] { padding: 10px; }
+            .btn-action span, .btn-send span { display: none; }
+            .controls { gap: 6px; }
+            input[type="text"] { padding: 12px; }
+            .user-msg { max-width: 90%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar History -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="new-chat-btn" onclick="startNewChat()">+ چت جدید</button>
@@ -120,9 +147,9 @@
         </div>
         
         <div class="chat-container" id="chat-box"></div>
-        <div class="loading" id="loading">در حال پردازش...</div>
+        <div class="loading" id="loading">در حال تایپ...</div>
 
-        <!-- کادر نوشتن و ارسال -->
+        <!-- کادر ورود پیام -->
         <div class="input-area">
             <div id="selected-image-container">
                 <img id="selected-image" src="" alt="preview">
@@ -135,7 +162,7 @@
                 
                 <button class="btn-action" onclick="openCamera()" title="دوربین">📷 <span>دوربین</span></button>
                 
-                <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <input type="text" id="user-input" placeholder="سوال خود را بپرسید..." onkeypress="if(event.key === 'Enter') sendMessage()">
                 
                 <button class="btn-send" onclick="sendMessage()" title="ارسال">🚀 <span>ارسال</span></button>
             </div>
@@ -147,24 +174,28 @@
         <video id="video-preview" autoplay playsinline></video>
         <canvas id="canvas" style="display: none;"></canvas>
         <div class="camera-controls">
-            <button class="btn-send" onclick="takePhoto()">📸 گرفتن عکس</button>
+            <button class="btn-send" onclick="takePhoto()">📸 عکس بگیر</button>
             <button class="btn-action" style="background: #d32f2f;" onclick="closeCamera()">لغو</button>
         </div>
     </div>
 
     <script>
-        // --- متغیرهای سراسری ---
         let currentImageBase64 = null;
         let currentMimeType = null;
         let videoStream = null;
         
-        // --- سیستم حافظه چت ---
         let chats = JSON.parse(localStorage.getItem('gemini_chats')) || [];
         let currentChatId = null;
 
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
         const sidebar = document.getElementById('sidebar');
+
+        // تنظیمات Marked.js برای جلوگیری از باگ‌های احتمالی پاراگراف بندی
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
 
         initChats();
 
@@ -235,7 +266,12 @@
             renderChatList();
         }
 
-        // --- نمایش پیام‌ها و رندر فرمول‌ها ---
+        function scrollToBottom() {
+            setTimeout(() => { 
+                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' }); 
+            }, 100);
+        }
+
         function appendMessageToUI(sender, text, save = true, imgSrc = null) {
             const div = document.createElement('div');
             div.className = `message ${sender === 'user' ? 'user-msg' : 'ai-msg'}`;
@@ -243,22 +279,29 @@
             if (text) {
                 const textDiv = document.createElement('div');
                 textDiv.dir = sender === 'user' ? 'rtl' : 'auto';
-                textDiv.innerHTML = marked.parse(text);
+                
+                // در پیام هوش مصنوعی ابتدا با مارک‌داون پردازش می‌شود
+                if(sender === 'ai') {
+                    textDiv.innerHTML = marked.parse(text);
+                } else {
+                    textDiv.innerText = text; // پیام کاربر ساده نمایش داده شود
+                }
+                
                 div.appendChild(textDiv);
             }
             if (imgSrc) {
                 const img = document.createElement('img');
                 img.src = imgSrc;
+                img.onload = scrollToBottom; // وقتی عکس لود شد اسکرول کن
                 div.appendChild(img);
             }
             
             chatBox.appendChild(div);
-            
-            // هدایت خودکار به پایین چت با تاخیر کم تا عکس لود شود
-            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
+            scrollToBottom();
 
-            if (window.MathJax) {
-                MathJax.typesetPromise([div]).catch(err => console.log('MathJax error:', err));
+            // پردازش فرمول‌های ریاضی بعد از اضافه شدن به صفحه
+            if (window.MathJax && sender === 'ai') {
+                MathJax.typesetPromise([div]).catch(err => console.log('MathJax error:', err)).then(scrollToBottom);
             }
 
             if (save) {
@@ -272,13 +315,12 @@
             }
         }
 
-        // --- ارسال پیام به سرور ---
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text && !currentImageBase64) return;
 
-            const imgSrc = document.getElementById('selected-image').src;
-            appendMessageToUI('user', text, true, currentImageBase64 ? imgSrc : null);
+            const imgSrc = currentImageBase64 ? document.getElementById('selected-image').src : null;
+            appendMessageToUI('user', text, true, imgSrc);
             
             const requestBody = {
                 text: text,
@@ -294,11 +336,10 @@
 
             userInput.value = '';
             clearImage();
-            
-            // بستن کیبورد در موبایل بعد از ارسال
             userInput.blur();
             
             document.getElementById('loading').style.display = 'block';
+            scrollToBottom();
 
             try {
                 const response = await fetch('/api/proxy', {
@@ -320,10 +361,10 @@
                 appendMessageToUI('ai', 'خطای شبکه: ' + error.message, false);
             } finally {
                 document.getElementById('loading').style.display = 'none';
+                scrollToBottom();
             }
         }
 
-        // --- دوربین و گالری ---
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
