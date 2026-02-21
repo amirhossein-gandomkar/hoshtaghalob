@@ -11,7 +11,6 @@
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
@@ -36,76 +35,50 @@
         .header { background: #1e1e1e; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
         .menu-btn { position: absolute; right: 15px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; display: none; }
         
-        /* کانتینر اصلی چت - رفع مشکل اسکرول */
-        .chat-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            overflow-x: hidden;
-            padding: 20px 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-            scroll-behavior: smooth;
-        }
+        .chat-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         
-        /* رفع مشکل روی هم افتادن پیام‌ها با flex-shrink: 0 */
-        .message { 
-            flex-shrink: 0; 
-            line-height: 1.8; 
-            word-wrap: break-word; 
-            overflow-wrap: break-word;
-            font-size: 16px;
-        }
-
-        /* پیام کاربر به صورت حباب */
-        .user-msg { 
-            background: #2b5278; 
-            align-self: flex-start; 
-            padding: 12px 16px; 
-            border-radius: 12px; 
-            border-bottom-right-radius: 2px;
-            max-width: 85%;
-        }
-
-        /* پیام هوش مصنوعی بدون کادر و آزاد در صفحه */
-        .ai-msg { 
-            align-self: flex-start; 
-            width: 100%; 
-            padding: 0 5px; /* حذف کادر و بک گراند برای خوانایی بهتر */
-            color: #ececec;
-        }
-
+        .message { flex-shrink: 0; line-height: 1.8; word-wrap: break-word; overflow-wrap: break-word; font-size: 16px; }
+        .user-msg { background: #2b5278; align-self: flex-start; padding: 12px 16px; border-radius: 12px; border-bottom-right-radius: 2px; max-width: 85%; white-space: pre-wrap; /* برای نمایش درست خطوط جدید */ }
+        .ai-msg { align-self: flex-start; width: 100%; padding: 0 5px; color: #ececec; }
         .message img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
         
-        /* فرمت‌های متن مارک‌داون */
         pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; direction: ltr; margin: 15px 0; border: 1px solid #333; }
         code { background: #1e1e1e; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #f8c555; }
         p { margin-bottom: 10px; }
         ul, ol { margin-right: 20px; margin-bottom: 10px; }
         
         /* Input Area */
-        .input-area { 
-            background: #1e1e1e; 
-            padding: 10px 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-            border-top: 1px solid #333; 
-            flex-shrink: 0; 
-            padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
-            width: 100%;
+        .input-area { background: #1e1e1e; padding: 10px 15px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #333; flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); width: 100%; }
+        
+        /* دکمه‌ها هم‌تراز با پایین کادر باشند تا وقتی کادر بزرگ شد، دکمه‌ها بالا نروند */
+        .controls { display: flex; gap: 8px; align-items: flex-end; width: 100%; }
+        
+        /* تبدیل Input به Textarea */
+        textarea#user-input { 
+            flex: 1; 
+            width: 100%; 
+            padding: 12px 14px; 
+            border-radius: 12px; 
+            border: none; 
+            background: #2c2c2c; 
+            color: #fff; 
+            outline: none; 
+            font-size: 16px; 
+            transition: background 0.2s; 
+            resize: none; /* جلوگیری از تغییر سایز دستی توسط کاربر */
+            overflow-y: hidden; 
+            min-height: 48px; /* ارتفاع اولیه */
+            max-height: 150px; /* حداکثر ارتفاع قبل از اسکرول خوردن داخل کادر */
+            line-height: 1.5;
+            font-family: inherit;
         }
+        textarea#user-input:focus { background: #333; }
         
-        .controls { display: flex; gap: 8px; align-items: center; width: 100%; }
-        
-        input[type="text"] { flex: 1; width: 100%; padding: 14px; border-radius: 12px; border: none; background: #2c2c2c; color: #fff; outline: none; font-size: 16px; transition: 0.2s; }
-        input[type="text"]:focus { background: #333; }
-        
-        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 48px; }
         .btn-send { background: #4caf50; flex-shrink: 0; min-width: 48px; }
         .btn-action { background: #444; flex-shrink: 0; min-width: 48px; }
         
-        #selected-image-container { display: none; position: relative; width: 60px; height: 60px; }
+        #selected-image-container { display: none; position: relative; width: 60px; height: 60px; margin-bottom: 5px; }
         #selected-image { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #555; }
         #remove-image { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
         
@@ -123,14 +96,12 @@
             .menu-btn { display: block; }
             .btn-action span, .btn-send span { display: none; }
             .controls { gap: 6px; }
-            input[type="text"] { padding: 12px; }
             .user-msg { max-width: 90%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="new-chat-btn" onclick="startNewChat()">+ چت جدید</button>
@@ -139,7 +110,6 @@
         <div class="chat-list" id="chat-list"></div>
     </div>
 
-    <!-- Main Chat -->
     <div class="main-content" onclick="closeSidebarIfMobile()">
         <div class="header">
             <button class="menu-btn" onclick="toggleSidebar(event)">☰</button>
@@ -149,7 +119,6 @@
         <div class="chat-container" id="chat-box"></div>
         <div class="loading" id="loading">در حال تایپ...</div>
 
-        <!-- کادر ورود پیام -->
         <div class="input-area">
             <div id="selected-image-container">
                 <img id="selected-image" src="" alt="preview">
@@ -162,14 +131,14 @@
                 
                 <button class="btn-action" onclick="openCamera()" title="دوربین">📷 <span>دوربین</span></button>
                 
-                <input type="text" id="user-input" placeholder="سوال خود را بپرسید..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <!-- تبدیل input به textarea -->
+                <textarea id="user-input" rows="1" placeholder="سوال خود را بپرسید..."></textarea>
                 
                 <button class="btn-send" onclick="sendMessage()" title="ارسال">🚀 <span>ارسال</span></button>
             </div>
         </div>
     </div>
 
-    <!-- Camera Modal -->
     <div id="camera-modal">
         <video id="video-preview" autoplay playsinline></video>
         <canvas id="canvas" style="display: none;"></canvas>
@@ -191,10 +160,32 @@
         const userInput = document.getElementById('user-input');
         const sidebar = document.getElementById('sidebar');
 
-        // تنظیمات Marked.js برای جلوگیری از باگ‌های احتمالی پاراگراف بندی
-        marked.setOptions({
-            breaks: true,
-            gfm: true
+        marked.setOptions({ breaks: true, gfm: true });
+
+        // تنظیمات ارتفاع خودکار Textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto'; // ریست کردن ارتفاع
+            this.style.height = (this.scrollHeight) + 'px'; // تنظیم بر اساس محتوا
+            if (this.scrollHeight > 150) {
+                this.style.overflowY = 'auto'; // فعال‌سازی اسکرول در صورت عبور از 150 پیکسل
+            } else {
+                this.style.overflowY = 'hidden';
+            }
+        });
+
+        // تنظیمات کیبورد (Enter و Shift+Enter)
+        userInput.addEventListener('keydown', function(event) {
+            // تشخیص اینکه کاربر موبایل است یا نه (بر اساس عرض صفحه)
+            const isMobile = window.innerWidth <= 768;
+
+            if (event.key === 'Enter') {
+                if (!isMobile && !event.shiftKey) {
+                    // در ویندوز: Enter پیام را می‌فرستد
+                    event.preventDefault(); // جلوگیری از ایجاد خط جدید
+                    sendMessage();
+                }
+                // در موبایل یا هنگام فشردن Shift+Enter، فقط خط جدید ساخته می‌شود و کد بالا اجرا نمی‌شود
+            }
         });
 
         initChats();
@@ -217,12 +208,7 @@
         }
 
         function startNewChat() {
-            const newChat = {
-                id: Date.now(),
-                title: 'چت ' + new Date().toLocaleTimeString('fa-IR'),
-                messages: [],   
-                history: []     
-            };
+            const newChat = { id: Date.now(), title: 'چت ' + new Date().toLocaleTimeString('fa-IR'), messages: [], history: [] };
             chats.unshift(newChat);
             saveChats();
             loadChat(newChat.id);
@@ -231,16 +217,11 @@
         }
 
         function saveChats() {
-            try {
-                localStorage.setItem('gemini_chats', JSON.stringify(chats));
-            } catch (e) {
-                console.warn("حافظه مرورگر پر شده است.");
-            }
+            try { localStorage.setItem('gemini_chats', JSON.stringify(chats)); } 
+            catch (e) { console.warn("حافظه مرورگر پر شده است."); }
         }
 
-        function getActiveChat() {
-            return chats.find(c => c.id === currentChatId);
-        }
+        function getActiveChat() { return chats.find(c => c.id === currentChatId); }
 
         function renderChatList() {
             const list = document.getElementById('chat-list');
@@ -264,12 +245,11 @@
                 chat.messages.forEach(msg => appendMessageToUI(msg.sender, msg.text, false, msg.imgSrc));
             }
             renderChatList();
+            scrollToBottom();
         }
 
         function scrollToBottom() {
-            setTimeout(() => { 
-                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' }); 
-            }, 100);
+            setTimeout(() => { chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' }); }, 100);
         }
 
         function appendMessageToUI(sender, text, save = true, imgSrc = null) {
@@ -280,26 +260,23 @@
                 const textDiv = document.createElement('div');
                 textDiv.dir = sender === 'user' ? 'rtl' : 'auto';
                 
-                // در پیام هوش مصنوعی ابتدا با مارک‌داون پردازش می‌شود
                 if(sender === 'ai') {
                     textDiv.innerHTML = marked.parse(text);
                 } else {
-                    textDiv.innerText = text; // پیام کاربر ساده نمایش داده شود
+                    textDiv.innerText = text; // استفاده از innerText باعث حفظ خطوط جدید (Enters) می‌شود
                 }
-                
                 div.appendChild(textDiv);
             }
             if (imgSrc) {
                 const img = document.createElement('img');
                 img.src = imgSrc;
-                img.onload = scrollToBottom; // وقتی عکس لود شد اسکرول کن
+                img.onload = scrollToBottom; 
                 div.appendChild(img);
             }
             
             chatBox.appendChild(div);
             scrollToBottom();
 
-            // پردازش فرمول‌های ریاضی بعد از اضافه شدن به صفحه
             if (window.MathJax && sender === 'ai') {
                 MathJax.typesetPromise([div]).catch(err => console.log('MathJax error:', err)).then(scrollToBottom);
             }
@@ -308,7 +285,7 @@
                 const chat = getActiveChat();
                 chat.messages.push({ sender, text, imgSrc: imgSrc ? imgSrc : null });
                 if (chat.title.startsWith('چت') && sender === 'user' && text) {
-                    chat.title = text.substring(0, 20) + '...';
+                    chat.title = text.substring(0, 20).replace(/\n/g, ' ') + '...';
                     renderChatList();
                 }
                 saveChats();
@@ -322,21 +299,18 @@
             const imgSrc = currentImageBase64 ? document.getElementById('selected-image').src : null;
             appendMessageToUI('user', text, true, imgSrc);
             
-            const requestBody = {
-                text: text,
-                imageBase64: currentImageBase64,
-                mimeType: currentMimeType,
-                history: getActiveChat().history 
-            };
+            const requestBody = { text: text, imageBase64: currentImageBase64, mimeType: currentMimeType, history: getActiveChat().history };
 
             const userParts = [];
             if(text) userParts.push({text});
 
             getActiveChat().history.push({ role: "user", parts: userParts });
 
+            // پاک کردن فیلد و بازگرداندن ارتفاع به حالت اولیه
             userInput.value = '';
+            userInput.style.height = '48px';
             clearImage();
-            userInput.blur();
+            if(window.innerWidth <= 768) userInput.blur();
             
             document.getElementById('loading').style.display = 'block';
             scrollToBottom();
