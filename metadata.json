@@ -1,0 +1,5 @@
+{
+  "name": "Manga Cleaner AI",
+  "description": "An AI-powered tool to detect and remove text from manga and manhwa images, preserving the background art.",
+  "requestFramePermissions": []
+}
