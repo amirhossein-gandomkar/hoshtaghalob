@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+
+/* لود فونت های اختصاصی برای خطبه نگاشت (از CDN های معتبر ایرانی) */
+@font-face {
+    font-family: 'B Nazanin';
+    src: url('https://cdn.fontcdn.ir/Font/Persian/BNazanin/BNazanin.woff2') format('woff2');
+    font-weight: bold;
+}
+@font-face {
+    font-family: 'B Titr';
+    src: url('https://cdn.fontcdn.ir/Font/Persian/BTitr/BTitrBold.woff2') format('woff2');
+    font-weight: bold;
+}
+
+:root {
+    --primary: #0ea5e9;
+    --secondary: #8b5cf6;
+    --dark-glass: rgba(15, 23, 42, 0.7);
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    background-color: #020617;
+    color: #e2e8f0;
+}
+
+/* استراتژی تهاجمی برای رفع خطای oklab/oklch در زمان گرفتن خروجی PDF */
+.pdf-safe-mode {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.pdf-safe-mode * {
+    background-color: transparent !important;
+    color: #222222 !important;
+    border-color: #dddddd !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    font-family: 'Tahoma', 'Arial', sans-serif !important; /* فونت امن برای PDF */
+}
+.pdf-safe-mode .output-card { border: 1px solid #ccc !important; padding: 15px !important; margin-bottom: 15px !important; }
+.pdf-safe-mode h3, .pdf-safe-mode h4, .pdf-safe-mode strong { color: #000000 !important; }
+.pdf-safe-mode svg { display: none !important; } /* حذف آیکون ها برای تمیزی PDF */
+
+/* ----- بوم شبکه عصبی و گرافیک ----- */
+#particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; }
+#ai-core { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; height: 90vw; max-height: 400px; z-index: -1; pointer-events: none; opacity: 0.15; transition: transform 0.1s; filter: drop-shadow(0 0 30px var(--primary)); animation: float 6s ease-in-out infinite; }
+@keyframes float { 0%, 100% { top: 50%; } 50% { top: 48%; } }
+
+.glass-panel { background: var(--dark-glass); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); }
+.neon-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc; transition: all 0.4s; resize: none; }
+.neon-input:focus { background: rgba(0, 0, 0, 0.5); border-color: var(--primary); box-shadow: 0 0 20px rgba(14,165,233,0.2); transform: translateY(-2px); outline: none;}
+
+.cyber-btn { position: relative; background: linear-gradient(135deg, var(--primary), var(--secondary)); overflow: hidden; z-index: 1; transition: all 0.3s ease; border: none; cursor: pointer; }
+.cyber-btn:hover { box-shadow: 0 0 25px rgba(139, 92, 246, 0.5); transform: scale(1.02); }
+.action-btn { font-weight: bold; padding: 0.75rem 1.25rem; border-radius: 0.75rem; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+
+.radar-loader { width: 80px; height: 80px; border-radius: 50%; border: 2px solid rgba(14,165,233,0.2); position: relative; margin: 0 auto; box-shadow: 0 0 20px rgba(14,165,233,0.3); }
+.radar-loader::before { content: ""; position: absolute; top: 50%; left: 50%; width: 50%; height: 50%; background: linear-gradient(45deg, transparent, rgba(14,165,233,0.8)); transform-origin: 0 0; animation: radar 2s linear infinite; }
+@keyframes radar { 100% { transform: rotate(360deg); } }
+
+.output-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; position: relative; }
+.output-khutbah1 { border-right: 4px solid #3b82f6; }
+.output-khutbah2 { border-right: 4px solid #10b981; }
+.output-overall { border-right: 4px solid #f59e0b; }
+
+@media (max-width: 768px) {
+    #particle-canvas, #ai-core { display: none !important; }
+}
